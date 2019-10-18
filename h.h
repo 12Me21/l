@@ -88,3 +88,5 @@ typedef struct Instruction {
 } Instruction;
 
 void run(Instruction *bytecode, Address ip);
+
+void assemble(FILE *file, Instruction *bytecode);

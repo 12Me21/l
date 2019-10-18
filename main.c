@@ -17,10 +17,13 @@ int main(void){
 	Value_print(&v2);
 
 	Instruction bytecode[10] = {
-		{.opcode = Op_push, .value = Value_number(3.14159265,NULL)},
+		{.opcode = Op_push, .value = Value_number(3.14159265, NULL)},
 		{.opcode = Op_print},
 		{.opcode = Op_halt},
 	};
+	FILE *file = fopen("test.prg","r");
+	puts("opened file");
+	assemble(file, bytecode+1);
 	run(bytecode,0);
 	return 0;
 }
