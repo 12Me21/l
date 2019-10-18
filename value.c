@@ -1,8 +1,9 @@
 #include "h.h"
 
-void Value_print(Value *value){
+static void Value_print_sub(Value *value){
 	Type type = value->type;
-	if(type == Type_number){
+	switch(type){
+	when(Type_number):;
 		Number num = value->number;
 		if(isnan(num))
 			printf("NaN");
@@ -13,25 +14,38 @@ void Value_print(Value *value){
 				printf("Inf");
 		}else
 			printf("%.*g", num == nearbyintf(num) ? 99999 : 15, num);
-	}else if(type == Type_string){
+	when(Type_string):;
 		BucketIndex i; //bad
 		for(i=0;i<value->string->length;i++)
 			printf("%c", value->string->string[i]);
-	}else if(type == Type_boolean){
+	when(Type_boolean):;
 		printf("%s", value->boolean ? "true" : "false");
-	}else if(type == Type_function){
+	when(Type_function):;
 		printf("<function>");
-	}else if(type == Type_table){
-		BucketIndex i;
+	when(Type_table):;
+		printf("{");
 		TableNode *item = value->table->shead;
-		while(item){	
-			Value_print(item->key);
+		int printed=0;
+		while(item){
+			if (printed)
+				printf(", ");
+			Value_print_sub(&item->key);
 			printf(": ");
-			Value_print(item->variable->value);
-			printf("\n");
+			Value_print_sub(&item->variable->value);
+			printed = 1;
 			item=item->snext;
 		}
-	}else if(type == Type_null){
+		printf("}");
+	when(Type_null):;
 		printf("null");
+	otherwise:
+		puts("TRIED TO PRINT INVALID TYPE");
+		exit(1);
 	}
+}
+
+// Debug: print a value
+void Value_print(Value *value){
+	Value_print_sub(value);
+	puts("");
 }

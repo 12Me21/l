@@ -49,10 +49,10 @@ static int Value_compare(Value *v1, Value *v2){
 }
 
 Table *Table_new(BucketIndex size){
-	Table *new = malloc(sizeof(Table));
+	Table *new = GC_MALLOC(sizeof(Table));
 	new->shead = NULL;
 	new->size = size;
-	new->buckets = malloc(size * sizeof(TableNode *));
+	new->buckets = GC_MALLOC(size * sizeof(TableNode *));
 	BucketIndex i;
 	for(i=0;i<size;i++)
 		new->buckets[i] = NULL;
@@ -63,7 +63,7 @@ TableNode *Table_get(Table *tb, Value *key){
 	BucketIndex index = Table_hash(key) % tb->size; //someday I'm going to forget to % ...
 	TableNode *bucket = tb->buckets[index];
 	while(bucket){
-		if (Value_compare(bucket->key, key))
+		if (Value_compare(&bucket->key, key))
 			return bucket;
 		bucket = bucket->bnext;
 	}
@@ -74,15 +74,15 @@ TableNode *Table_add(Table *tb, Value *key, Variable *var){
 	BucketIndex index = Table_hash(key) % tb->size;
 	TableNode *bucket = tb->buckets[index];	
 	while(bucket){
-		if (Value_compare(bucket->key, key)){
+		if (Value_compare(&bucket->key, key)){
 			bucket->variable = var;
 			return bucket;
 		}
 		bucket = bucket->bnext;
 	}
-	bucket = malloc(sizeof(TableNode));
+	bucket = GC_MALLOC(sizeof(TableNode));
 	bucket->bnext = tb->buckets[index];
-	bucket->key = key;
+	bucket->key = *key;
 	bucket->variable = var;
 	tb->buckets[index] = bucket;
 	if(!(tb->shead)){
@@ -102,8 +102,8 @@ TableNode *Table_remove(Table *tb, Value *key){
 	TableNode *node = Table_get(tb, key);
 	if (!node)
 		return NULL;
-	if(node->sprev)
-		node->sprev->snext = node->next;
+	//if(node->sprev)
+		//node->sprev->snext = node->next;
 	//oh this is going to break with a circle list ughh
 	
 }
