@@ -52,7 +52,7 @@ Table *Table_new(BucketIndex size){
 	Table *new = GC_MALLOC(sizeof(Table));
 	new->shead = NULL;
 	new->size = size;
-	new->buckets = GC_MALLOC(size * sizeof(TableNode *));
+	new->buckets = GC_MALLOC(size * sizeof(TableNode *)); //should be handled by Table finalizer
 	BucketIndex i;
 	for(i=0;i<size;i++)
 		new->buckets[i] = NULL;
@@ -80,9 +80,18 @@ TableNode *Table_add(Table *tb, Value *key, Variable *var){
 		}
 		bucket = bucket->bnext;
 	}
-	bucket = GC_MALLOC(sizeof(TableNode));
+	bucket = GC_MALLOC(sizeof(TableNode)); // should be handled by finalizer
 	bucket->bnext = tb->buckets[index];
-	bucket->key = *key;
+	if (key->type != Type_string)
+		bucket->key = *key;
+	else {
+		//Strings are special, as they are both
+		//mutable, AND compared by value, so...
+		//must be copied, otherwise it would be
+		//possible to modify a key in a table,:
+		//causing it to be in the wrong bucket!
+		Value_string_copy(&bucket->key, key);
+	}
 	bucket->variable = var;
 	tb->buckets[index] = bucket;
 	if(!(tb->shead)){
@@ -99,11 +108,37 @@ TableNode *Table_add(Table *tb, Value *key, Variable *var){
 }
 
 TableNode *Table_remove(Table *tb, Value *key){
-	TableNode *node = Table_get(tb, key);
-	if (!node)
-		return NULL;
-	//if(node->sprev)
-		//node->sprev->snext = node->next;
-	//oh this is going to break with a circle list ughh
+	BucketIndex index = Table_hash(key) % tb->size;
+	TableNode *prev;
+	TableNode *node = tb->buckets[index];
+	while(node){
+		if (Value_compare(&node->key, key))
+			goto found;
+		prev = node;
+		node = node->bnext;
+	}
+	return NULL;
+found:
+	// remove node from bucket:
+	if (prev) //is not first node
+		prev->bnext = node->bnext;
+	else //first
+		tb->buckets[index] = node->bnext;
+
+	// Remove node from sorted list
 	
+	if(node == tb->shead){ //is the first node
+		tb->shead = node->snext;
+		// update pointer to last node
+		if(node->snext) //not the last node
+			node->snext->sprev = node->sprev;
+	}else{ //not first node
+		node->sprev->snext = node->snext;
+		
+		if (node->snext) //is not last node
+			node->snext->sprev = node->sprev;
+		else //last node
+			tb->shead->sprev = node;
+	}
+	return node;
 }

@@ -3,7 +3,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <setjmp.h>
 #include <gc.h>
+
 
 #define when(x) break;case x
 #define otherwise break;default
@@ -39,7 +41,9 @@ typedef struct Table {
 	BucketIndex size;
 } Table;
 
-//size: 17-24 bytes
+struct Variable;
+
+//size: 25-32 bytes
 typedef struct Value {
 	Table *class; //not sure...
 	union {
@@ -49,6 +53,10 @@ typedef struct Value {
 		Table *table;
 		Boolean boolean;
 	};
+	//This is not ideal, and takes up
+	//a lot of space. but for now its
+	//required for assignment to work
+	struct Variable *variable; 
 	Type type;
 } Value;
 
@@ -68,10 +76,15 @@ typedef struct TableNode {
 Table *Table_new(BucketIndex size);
 TableNode *Table_add(Table *tb, Value *key, Variable *var);
 TableNode *Table_get(Table *tb, Value *key);
+TableNode *Table_remove(Table *tb, Value *key);
+
 void Value_print(Value *value);
 
 #define Value_number(number1, class1) (Value){.type=Type_number, .class=(class1), .number=(number1)}
+void Value_string_copy(Value *dest, Value *value);
 
+//###################
+// instructions
 typedef enum Opcode {
 	Op_invalid,
 	Op_push,
@@ -90,3 +103,6 @@ typedef struct Instruction {
 void run(Instruction *bytecode, Address ip);
 
 void assemble(FILE *file, Instruction *bytecode);
+void disassemble(Instruction *bytecode);
+
+void Run_init(Instruction *bytecode);

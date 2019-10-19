@@ -14,16 +14,22 @@ int main(void){
 	Table_add(test, &testvalue2, &testvar);
 	Table_add(test, &testvalue2, &testvar2);
 	Table_add(test, &testvalue3, &testvar);
+	Table_remove(test, &testvalue2);
 	Value_print(&v2);
 
-	Instruction bytecode[10] = {
+	Instruction bytecode[10];/* = {
 		{.opcode = Op_push, .value = Value_number(3.14159265, NULL)},
 		{.opcode = Op_print},
 		{.opcode = Op_halt},
-	};
+		};*/
 	FILE *file = fopen("test.prg","r");
 	puts("opened file");
-	assemble(file, bytecode+1);
-	run(bytecode,0);
+	assemble(file, bytecode);
+	fclose(file);
+	puts("assembled");
+	puts("disassembly:");
+	disassemble(bytecode);
+	puts("vv Running.. vv");
+	Run_init(bytecode);
 	return 0;
 }

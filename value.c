@@ -49,3 +49,20 @@ void Value_print(Value *value){
 	Value_print_sub(value);
 	puts("");
 }
+
+//make a new string
+String *String_new(char *data, unsigned int length){
+	String *string = GC_MALLOC(sizeof(String)); //ideally _ATOMIC
+	string->string = GC_MALLOC_ATOMIC(length); //ideally, not gc: freed by String finalizer
+	memcpy(string->string, data, length);
+	string->length = length;
+	return string;
+}
+
+//copies a string value from `value` to `dest`
+void Value_string_copy(Value *dest, Value *value){
+	//todo: check if value type is string
+	dest->type = Type_string;
+	dest->string = String_new(value->string->string, value->string->length);
+}
+
