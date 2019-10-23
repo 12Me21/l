@@ -6,6 +6,7 @@
 #include <setjmp.h>
 #include <gc.h>
 
+#define DIM(array) sizeof(array)/sizeof((array)[0])
 
 #define when(x) break;case x
 #define otherwise break;default
@@ -15,6 +16,7 @@ typedef int Address; //address within bytecode
 typedef char Boolean;
 typedef uint32_t BucketIndex;
 //enum = int = too many memory
+#define Type_default '\0'
 #define Type_number '\1'
 #define Type_string '\2'
 #define Type_function '\3'
@@ -63,6 +65,7 @@ typedef struct Value {
 typedef struct Variable {
 	Function *validator;
 	Value value; //Not a pointer!
+	//Value are never GC: always exist within a variable/the stack/a temporary struct
 } Variable;
 
 typedef struct TableNode {
@@ -80,8 +83,12 @@ TableNode *Table_remove(Table *tb, Value *key);
 
 void Value_print(Value *value);
 
+String *String_new(char *data, unsigned int length);
+
 #define Value_number(number1, class1) (Value){.type=Type_number, .class=(class1), .number=(number1)}
+#define Value_string(data, len, class1) (Value){.type=Type_string, .class=(class1), .string=String_new(data, len)};
 void Value_string_copy(Value *dest, Value *value);
+String *String_new(char *data, unsigned int length);
 
 //###################
 // instructions
@@ -90,6 +97,10 @@ typedef enum Opcode {
 	Op_push,
 	Op_print,
 	Op_halt,
+	Op_jump,
+	Op_discard,
+	Op_add, //test
+	Op_variable,
 } Opcode;
 
 typedef struct Instruction {
@@ -106,3 +117,21 @@ void assemble(FILE *file, Instruction *bytecode);
 void disassemble(Instruction *bytecode);
 
 void Run_init(Instruction *bytecode);
+void Value_copy(Value *dest, Value *value);
+
+// Error handling
+extern char *Error_message;
+extern jmp_buf Error_jump;
+
+// stack.c
+void Stack_reset(void);
+Value *Stack_push(void);
+Value *Stack_pop(void);
+void Callstack_push(Address n);
+Address Callstack_pop(void);
+
+//Operators:
+void Value_add(Value *dest, Value *a, Value *b);
+
+//Variable:
+Variable *Variable_new(Value *value, Function *validator);

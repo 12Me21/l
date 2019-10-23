@@ -1,6 +1,8 @@
-push 3.1416
+push "Hello!"
 print
 push 1
-push 2
+push 7.5
+add
 print
-print
+halt
+jump 0

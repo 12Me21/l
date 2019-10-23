@@ -17,6 +17,10 @@ int main(void){
 	Table_remove(test, &testvalue2);
 	Value_print(&v2);
 
+	//while(1){
+	//	String *whatever = String_new("HELLO!", 6);
+	//}
+	
 	Instruction bytecode[10];/* = {
 		{.opcode = Op_push, .value = Value_number(3.14159265, NULL)},
 		{.opcode = Op_print},
@@ -30,6 +34,7 @@ int main(void){
 	puts("disassembly:");
 	disassemble(bytecode);
 	puts("vv Running.. vv");
-	Run_init(bytecode);
+	//while(1)
+		Run_init(bytecode);
 	return 0;
 }

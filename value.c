@@ -50,10 +50,16 @@ void Value_print(Value *value){
 	puts("");
 }
 
+void String_fin(GC_PTR obj, GC_PTR cd){
+	(void)cd;
+	free(((String *)obj)->string);
+}
+
 //make a new string
 String *String_new(char *data, unsigned int length){
-	String *string = GC_MALLOC(sizeof(String)); //ideally _ATOMIC
-	string->string = GC_MALLOC_ATOMIC(length); //ideally, not gc: freed by String finalizer
+	String *string = GC_MALLOC_ATOMIC(sizeof(String));
+	string->string = malloc(length);
+	GC_register_finalizer(string, String_fin, NULL, NULL, NULL);
 	memcpy(string->string, data, length);
 	string->length = length;
 	return string;
@@ -66,3 +72,14 @@ void Value_string_copy(Value *dest, Value *value){
 	dest->string = String_new(value->string->string, value->string->length);
 }
 
+void Value_copy(Value *dest, Value *value){
+	switch(value->type){
+	when(Type_string):;
+		Value_string_copy(dest, value);
+	when(Type_table):;
+		//oh gosh table copy...
+		*dest = *value;
+	otherwise:;
+		*dest = *value;
+	}
+}
