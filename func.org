@@ -1,0 +1,42 @@
+** Info stored per-function in bytecode
+- number of local variables
+- array of instructions
+- number of arguments (+ constraints, etc?)
+- list of nonlocal variables (each as level+index)
+- debug information (line #, function name, somehow, maybe docstring, etc.)
+
+** Info stored per variable
+*** Local
+- index in variable stack
+*** Nonlocal
+- index in upvalues list
+
+** Actions on function call
+- stack contains: <stacklist of args...> <function>
+- check function info
+- create local vars
+- do arg assignment (maybe this could be handled the same way as a,b,c=1,2,3)
+- call interpreter recursively on function (entire object, bytecode + upvals)
+- function returns by pushing a stack list to the stack (shared)
+
+** Actions on function creation
+- create function object, containing ptr to bytecode and list of upvalues
+- fill upvalues list with ptrs to nonlocal vars (referenced from level stack)
+- done!
+
+** Actions on variable access
+- push value to stack (with variable backpointer set)
+
+*** Local
+- look up in local var stack
+
+*** Nonlocal
+- look up in upvalues list
+
+* The level stack
+- I forget exactly how this works (need to check my old code)
+- used to control nonlocal variable access (and now, creating upvalues)
+
+* Conclusion
+I believe this will all work
+concentration fading now...
