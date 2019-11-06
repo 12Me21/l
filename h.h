@@ -15,6 +15,7 @@ typedef double Number;
 typedef int Address; //address within bytecode
 typedef char Boolean;
 typedef uint32_t BucketIndex;
+typedef int VarIndex;
 //enum = int = too many memory
 #define Type_default '\0'
 #define Type_number '\1'
@@ -30,12 +31,9 @@ typedef struct String {
 	char *string;
 } String;
 
-typedef struct Function {
-	Address address;
-	// TODO: closure stuff
-} Function;
-
 struct TableNode;
+
+struct Function;
 
 typedef struct Table {
 	struct TableNode *shead;
@@ -51,7 +49,7 @@ typedef struct Value {
 	union {
 		Number number;
 		String *string;
-		Function *function;
+		struct Function *function;
 		Table *table;
 		Boolean boolean;
 	};
@@ -63,7 +61,7 @@ typedef struct Value {
 } Value;
 
 typedef struct Variable {
-	Function *validator;
+	struct Function *validator;
 	Value value; //Not a pointer!
 	//Value are never GC: always exist within a variable/the stack/a temporary struct
 } Variable;
@@ -94,29 +92,56 @@ String *String_new(char *data, unsigned int length);
 // instructions
 typedef enum Opcode {
 	Op_invalid,
-	Op_push,
+	Op_push, // .value
 	Op_print,
 	Op_halt,
-	Op_jump,
+	Op_jump, // .address
 	Op_discard,
-	Op_add, //test
-	Op_variable,
+	Op_add, //
+	Op_push_local, // .varindex
+	Op_push_nonlocal, // .varindex
+	Op_push_function_literal, // .function
+	Op_return,
 } Opcode;
 
 typedef struct Instruction {
 	Opcode opcode;
 	union {
-		Value value;
+		Value value; //biggest
 		Address address;
+		VarIndex varindex;
+		struct Function *function;
 	};
 } Instruction;
 
-void run(Instruction *bytecode, Address ip);
+// Reference to nonlocal variable used in Function
+// level: relative position in the level stack
+// index: index in local variable array in its host function
+typedef struct Nonlocal {
+	VarIndex index;
+	int level;
+} Nonlocal;
+
+// Function for literal
+typedef struct FunctionDef {
+	VarIndex localc; // number of local vars
+	VarIndex argc; // number of local vars that are arguments
+	Instruction *code;
+	Nonlocal *nonlocals;
+} FunctionDef;
+
+// Function + upvalues
+typedef struct Function {
+	FunctionDef *function;
+	Variable **nonlocals;
+} Function;
+
+void run(Function *function);
 
 void assemble(FILE *file, Instruction *bytecode);
 void disassemble(Instruction *bytecode);
 
-void Run_init(Instruction *bytecode);
+void Run_init(Function *);
 void Value_copy(Value *dest, Value *value);
 
 // Error handling
@@ -129,9 +154,12 @@ Value *Stack_push(void);
 Value *Stack_pop(void);
 void Callstack_push(Address n);
 Address Callstack_pop(void);
+Variable **Varstack_enter(VarIndex c);
+void Varstack_leave(VarIndex c);
 
 //Operators:
 void Value_add(Value *dest, Value *a, Value *b);
 
 //Variable:
 Variable *Variable_new(Value *value, Function *validator);
+

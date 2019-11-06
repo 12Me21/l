@@ -35,6 +35,8 @@ int main(void){
 	disassemble(bytecode);
 	puts("vv Running.. vv");
 	//while(1)
-		Run_init(bytecode);
+	FunctionDef mai = {.localc=0, .argc=0, .code=bytecode, .nonlocals=NULL};
+	Function m = {.function = &mai};
+	Run_init(&m);
 	return 0;
 }

@@ -1,6 +1,6 @@
 #include "h.h"
 
-Variable *Variable_new(Value *value, Function *validator){
+static Variable *Variable_new(Value *value, Function *validator){
 	Variable *new = GC_MALLOC(sizeof(Variable));
 	if (value)
 		new->value = *value;
@@ -18,7 +18,34 @@ void Variable_assign(Variable *variable, Value *value){
 	variable->value.variable = variable;
 }
 
+//######################
+// Local Variable Stack
 
-//ok but now, how are functions going to reference variables?
-//you can create them, but then how to retrieve references later?
-// mmmmmm
+static Variable *var_stack[1024]; //stack for variables
+static VarIndex var_stack_len = 0;
+
+// when entering a function, create local variables
+Variable **Varstack_enter(VarIndex c){
+	VarIndex i;
+	Variable **start = var_stack + var_stack_len;
+	for(i=0;i<c;i++){
+		var_stack[var_stack_len] = Variable_new(NULL, NULL);
+		var_stack_len ++;
+	}
+	return start;
+}
+
+// When exiting a function
+// You must pass the same `c` value that was passed to _enter
+// (maybe in the future I should keep track of that automatically)
+void Varstack_leave(VarIndex c){
+	if (var_stack_len < c) {
+		Error_message = "Internal error: variable stack underflow";
+		longjmp(Error_jump, 1);
+	}
+	var_stack_len -= c;
+	// we can't free vars here because they might be used by closures
+	// so they need to be GC
+	// (potentially optimization: mark which vars are used in closures, and
+	// then this can free the others)
+}

@@ -1,6 +1,8 @@
+// For the management of stacks
 #include "h.h"
 
-// For the management of stacks
+//#############
+// Value Stack
 
 static Value stack[1024];
 static unsigned stack_len = 0;
@@ -26,6 +28,9 @@ void Stack_reset(void){
 	stack_len = 0;
 }
 
+//############
+// Call Stack
+
 static Address callstack[256];
 static unsigned callstack_len = 0;
 
@@ -44,3 +49,7 @@ Address Callstack_pop(void){
 	}
 	return callstack[--callstack_len];
 }
+
+// note: be careful when using malloc instead of GC_malloc
+// because I think pointers inside these objects will not be tracked
+// if something has pointers and should not be GC, I think there's a GC_ function for that
