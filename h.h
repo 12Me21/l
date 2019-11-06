@@ -103,6 +103,7 @@ typedef enum Opcode {
 	Op_push_nonlocal, // .varindex
 	Op_push_function_literal, // .function
 	Op_return,
+	Op_assign,
 } Opcode;
 
 typedef struct Instruction {
@@ -168,4 +169,4 @@ void Value_add(Value *dest, Value *a, Value *b);
 
 //Variable:
 Variable *Variable_new(Value *value, Function *validator);
-
+void Variable_assign(Variable *variable, Value *value);

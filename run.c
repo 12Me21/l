@@ -25,6 +25,7 @@ void Run_init(Function *func){
 // Error_jump should be set to a point before the first call to this
 // consider adding support for exceptions
 void run(Function *function){
+	
 	Address ip = 0;
 	Instruction *bytecode = function->function->code;
 	Variable **locals = Function_enter(function->function);
@@ -49,9 +50,14 @@ void run(Function *function){
 		when(Op_push_local):;
 			*(Stack_push()) = locals[inst.varindex]->value;
 		when(Op_push_nonlocal):;
+			puts("push nl?");
 			*(Stack_push()) = nonlocals[inst.varindex]->value;
+			puts("push nl!");
 		when(Op_return):;
 			goto func_return;
+		when(Op_assign):;
+			a = Stack_pop();
+			Variable_assign(Stack_pop()->variable, a);
 		otherwise:
 			Error_message = "Internal error: Invalid opcode";
 			longjmp(Error_jump, 1);

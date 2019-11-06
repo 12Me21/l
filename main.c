@@ -35,8 +35,20 @@ int main(void){
 	disassemble(bytecode);
 	puts("vv Running.. vv");
 	//while(1)
-	FunctionDef mai = {.localc=0, .argc=0, .code=bytecode, .nonlocals=NULL};
+	FunctionDef mai = {.localc=1, .argc=0, .code=bytecode, .nonlocals=NULL, .level=0};
+	Instruction bytecode2[] = {
+		{.opcode=Op_push_nonlocal, .varindex=0},
+		{.opcode=Op_push, .value={.type=Type_boolean, .boolean=1}},
+		{.opcode=Op_assign},
+		{.opcode=Op_push_nonlocal, .varindex=0},
+		{.opcode=Op_print},
+		{.opcode=Op_return}
+	};
+	Nonlocal nl[1] = {{.index=0,. level=1}};
+	FunctionDef ne = {.localc=0, .argc=0, .code=bytecode2, .nonlocals=nl, .level=1, .nonlocalc=1}; //ue
 	Function *m = Function_create(&mai);
-	Run_init(m);
+	Function_enter(&mai);
+	Function *n = Function_create(&ne);
+	Run_init(n);
 	return 0;
 }

@@ -14,6 +14,9 @@ Variable *Variable_new(Value *value, Function *validator){
 void Variable_assign(Variable *variable, Value *value){
 	//if(variable->validator)
 		//Stack_push(value);
+	puts("assign?");
+	printf("%p\n", variable);
 	variable->value = *value;
 	variable->value.variable = variable;
+	puts("assign!");
 }

@@ -5,19 +5,19 @@
 
 static Variable *var_stack[1024]; //stack for variables
 static VarIndex var_stack_len = 0;
-// This stores a pointer to the variable stack
+
+static Variable **level_stack[256];
+// This stores pointers to the variable stack
 // each item in this is a "depth"
 // each FunctionDef has a level which depends on its position in the code
 // the global function is level 0
-// all functions directly inside that have level 1
-// etc.
+// all functions directly inside that have level 1, etc.
 // Functions with higher levels can access variables from outer functions
 // and this stack is used to find these nonlocal variables in var_stack
-static Variable **level_stack[256];
 
+//not sure this should even be a function
 static Variable *Nonlocal_lookup(FunctionDef *def, Nonlocal ind) {
-	Level level = def->level - ind.level;
-	return level_stack[level][ind.index];
+	return level_stack[def->level-ind.level][ind.index];
 }
 
 // when entering a function, create local variables
