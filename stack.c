@@ -51,5 +51,5 @@ Address Callstack_pop(void){
 }
 
 // note: be careful when using malloc instead of GC_malloc
-// because I think pointers inside these objects will not be tracked
-// if something has pointers and should not be GC, I think there's a GC_ function for that
+// because I think pointers inside these objects will not be tracked by the GCer
+// if something has pointers and should not be GCed, I think there's a GC_ function for that

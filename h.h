@@ -16,6 +16,7 @@ typedef int Address; //address within bytecode
 typedef char Boolean;
 typedef uint32_t BucketIndex;
 typedef int VarIndex;
+typedef int Level;
 //enum = int = too many memory
 #define Type_default '\0'
 #define Type_number '\1'
@@ -119,15 +120,17 @@ typedef struct Instruction {
 // index: index in local variable array in its host function
 typedef struct Nonlocal {
 	VarIndex index;
-	int level;
+	Level level; //Relative to current level. 1 = from parent function, 2 = grandparent, etc.
 } Nonlocal;
 
 // Function for literal
 typedef struct FunctionDef {
 	VarIndex localc; // number of local vars
 	VarIndex argc; // number of local vars that are arguments
+	VarIndex nonlocalc; // number of nonlocal vars
 	Instruction *code;
-	Nonlocal *nonlocals;
+	Nonlocal *nonlocals; // length = `nonlocalc`
+	Level level;
 } FunctionDef;
 
 // Function + upvalues
@@ -154,8 +157,11 @@ Value *Stack_push(void);
 Value *Stack_pop(void);
 void Callstack_push(Address n);
 Address Callstack_pop(void);
-Variable **Varstack_enter(VarIndex c);
-void Varstack_leave(VarIndex c);
+
+// function.c
+Variable **Function_enter(FunctionDef *def);
+void Function_leave(FunctionDef *def);
+Function *Function_create(FunctionDef *def);
 
 //Operators:
 void Value_add(Value *dest, Value *a, Value *b);

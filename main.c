@@ -36,7 +36,7 @@ int main(void){
 	puts("vv Running.. vv");
 	//while(1)
 	FunctionDef mai = {.localc=0, .argc=0, .code=bytecode, .nonlocals=NULL};
-	Function m = {.function = &mai};
-	Run_init(&m);
+	Function *m = Function_create(&mai);
+	Run_init(m);
 	return 0;
 }

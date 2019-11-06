@@ -12,14 +12,6 @@ void Run_init(Function *func){
 		//puts("^^ Finished. ^^");
 	}
 }
-
-// bytecode must be a pointer to the START of the bytecode array
-// It *looks* like you could call this with a pointer, to, say, a function, for recursion, but
-// then addresses would be... hmm wait
-// actually that might work
-// NO it wouldn't because a function still has addresses of OTHER functions
-// Which are all absolute !
-
 // Idea to improve efficiency of functions:
 // each function is generated in its own instruction array, and function pointers
 // are a pointer to this array, rather than an address in the main array.
@@ -27,11 +19,15 @@ void Run_init(Function *func){
 // Which is ugly and may become problematic with the extensive use of functions
 // for parsing: just read the function code into the main Instructions buffer,
 // Then at the end of a function, copy that function's data into a new allocated array, and then return the instruction insert pointer to the start of the newly finished function, and continue.!
+
+// Execute a function
+// supports recursion
+// Error_jump should be set to a point before the first call to this
+// consider adding support for exceptions
 void run(Function *function){
 	Address ip = 0;
 	Instruction *bytecode = function->function->code;
-	VarIndex localc = function->function->localc;
-	Variable **locals = Varstack_enter(localc);
+	Variable **locals = Function_enter(function->function);
 	Variable **nonlocals = function->nonlocals;
 	while(1){
 		Instruction inst = bytecode[ip];
@@ -63,5 +59,5 @@ void run(Function *function){
 		ip++;
 	}
 func_return:
-	Varstack_leave(localc);
+	Function_leave(function->function);
 }
