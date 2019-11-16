@@ -1,4 +1,3 @@
-// For the management of stacks
 #include "h.h"
 
 //#############
@@ -15,39 +14,26 @@ Value *Stack_push(void){
 	return &stack[stack_len++];
 }
 
+//todo: after popping a value, it is left on the stack
+// so it won't be garbage collected
+// how to fix?
 Value *Stack_pop(void){
 	if(stack_len<=0){
 		Error_message = "Internal error: Stack underflow";
 		longjmp(Error_jump, 1);
 	}
-	return &stack[--stack_len];
+	//memset(&stack[stack_len], 0, sizeof(Value)); //clear the value ABOVE the one we're popping
+	// this is to prevent pointers staying on the stack forever, preventing GC
+	// It's not a perfect fix (there will always be 1 extra item on the stack, because this function returns a pointer to it)
+	// But it works for now
+	// UM no it doens't. why does the memset break aaa
+	stack_len--;
+	return &stack[stack_len];
 }
 
 void Stack_reset(void){
 	memset(stack, 0, sizeof stack);
 	stack_len = 0;
-}
-
-//############
-// Call Stack
-
-static Address callstack[256];
-static unsigned callstack_len = 0;
-
-void Callstack_push(Address n){
-	if(callstack_len >= DIM(stack)){
-		Error_message = "Call stack overflow";
-		longjmp(Error_jump, 1);
-	}
-	callstack[callstack_len++] = n;
-}
-
-Address Callstack_pop(void){
-	if(stack_len<=0){
-		Error_message = "Internal error: Call stack underflow";
-		longjmp(Error_jump, 1);
-	}
-	return callstack[--callstack_len];
 }
 
 // note: be careful when using malloc instead of GC_malloc

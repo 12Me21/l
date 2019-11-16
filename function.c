@@ -42,7 +42,9 @@ void Function_leave(FunctionDef *def) {
 		Error_message = "Internal error: variable stack underflow";
 		longjmp(Error_jump, 1);
 	}
-	var_stack_len -= c;
+	VarIndex i;
+	for (i=0; i<c; i++)
+		var_stack[--var_stack_len] = NULL;
 	// we can't free vars here because they might be used by closures
 	// so they need to be GC
 	// (potentially optimization: mark which vars are used in closures, and

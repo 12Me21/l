@@ -1,6 +1,8 @@
 #include "h.h"
 
 int main(void){
+	GC_INIT();
+	/*
 	Value testvalue = {.type = Type_null, .class = NULL};
 	Value testvalue3 = {.type = Type_boolean, .class = NULL, .boolean = 0};
 	Value testvalue2 = Value_number(3.14159265358979, 0);
@@ -16,26 +18,15 @@ int main(void){
 	Table_add(test, &testvalue3, &testvar);
 	Table_remove(test, &testvalue2);
 	Value_print(&v2);
+	*/
 
 	//while(1){
 	//	String *whatever = String_new("HELLO!", 6);
 	//}
 	
-	Instruction bytecode[10];/* = {
-		{.opcode = Op_push, .value = Value_number(3.14159265, NULL)},
-		{.opcode = Op_print},
-		{.opcode = Op_halt},
-		};*/
-	FILE *file = fopen("test.prg","r");
-	puts("opened file");
-	assemble(file, bytecode);
-	fclose(file);
-	puts("assembled");
-	puts("disassembly:");
-	disassemble(bytecode);
 	puts("vv Running.. vv");
 	//while(1)
-	FunctionDef mai = {.localc=1, .argc=0, .code=bytecode, .nonlocals=NULL, .level=0};
+
 	Instruction bytecode2[] = {
 		{.opcode=Op_push_nonlocal, .varindex=0},
 		{.opcode=Op_push, .value={.type=Type_boolean, .boolean=1}},
@@ -45,10 +36,21 @@ int main(void){
 		{.opcode=Op_return}
 	};
 	Nonlocal nl[1] = {{.index=0,. level=1}};
-	FunctionDef ne = {.localc=0, .argc=0, .code=bytecode2, .nonlocals=nl, .level=1, .nonlocalc=1}; //ue
+	FunctionDef ne = {.localc=0, .argc=0, .code=bytecode2, .nonlocals=nl, .level=1, .nonlocalc=1};
+	
+	Instruction bytecode[] = {
+		{.opcode=Op_create_function, .function=&ne},
+		{.opcode=Op_call_function},
+		{.opcode=Op_push_local},
+		{.opcode=Op_print},
+		{.opcode=Op_return},
+	};
+	FunctionDef mai = {.localc=1, .argc=0, .code=bytecode, .nonlocals=NULL, .level=0};
+
 	Function *m = Function_create(&mai);
-	Function_enter(&mai);
-	Function *n = Function_create(&ne);
-	Run_init(n);
+	//Function_enter(&mai);
+	//Function *n = Function_create(&ne);
+	//while(1)
+		Run_init(m);
 	return 0;
 }

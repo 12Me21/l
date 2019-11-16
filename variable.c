@@ -12,11 +12,10 @@ Variable *Variable_new(Value *value, Function *validator){
 }
 
 void Variable_assign(Variable *variable, Value *value){
-	//if(variable->validator)
-		//Stack_push(value);
-	puts("assign?");
-	printf("%p\n", variable);
+	if (!variable) {
+		Error_message = "Tried to assign to something that isn't a variable";
+		longjmp(Error_jump, 1);
+	}
 	variable->value = *value;
 	variable->value.variable = variable;
-	puts("assign!");
 }

@@ -11,12 +11,11 @@ void Run_init(Function *func){
 	when(2):; //program ended
 		//puts("^^ Finished. ^^");
 	}
+	Stack_reset();
+	Varstack_reset();
+	GC_gcollect();
 }
-// Idea to improve efficiency of functions:
-// each function is generated in its own instruction array, and function pointers
-// are a pointer to this array, rather than an address in the main array.
-// This way, we can avoid the GOTO @SKIP <function code> @SKIP trick.
-// Which is ugly and may become problematic with the extensive use of functions
+
 // for parsing: just read the function code into the main Instructions buffer,
 // Then at the end of a function, copy that function's data into a new allocated array, and then return the instruction insert pointer to the start of the newly finished function, and continue.!
 
@@ -50,14 +49,27 @@ void run(Function *function){
 		when(Op_push_local):;
 			*(Stack_push()) = locals[inst.varindex]->value;
 		when(Op_push_nonlocal):;
-			puts("push nl?");
 			*(Stack_push()) = nonlocals[inst.varindex]->value;
-			puts("push nl!");
 		when(Op_return):;
 			goto func_return;
 		when(Op_assign):;
 			a = Stack_pop();
 			Variable_assign(Stack_pop()->variable, a);
+		when(Op_create_function):;
+			Function *func = Function_create(inst.function);
+			*(Stack_push()) = (Value){.class=NULL, .type=Type_function, .variable=NULL, .function=func};
+		when(Op_call_function):; //no args yet
+			a = Stack_pop();
+			if (a->type != Type_function){
+				Error_message = "Tried to call something that isn't a function";
+				longjmp(Error_jump, 1);
+			}
+			run(a->function);
+		when(Op_get_method):;
+			// - get metatable
+			// - look up field
+			// - if function, set `this` upvalue maybe
+			// - push
 		otherwise:
 			Error_message = "Internal error: Invalid opcode";
 			longjmp(Error_jump, 1);

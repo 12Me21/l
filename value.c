@@ -1,6 +1,7 @@
 #include "h.h"
 
 static void Value_print_sub(Value *value){
+	Value_check(value);
 	Type type = value->type;
 	switch(type){
 	when(Type_number):;
@@ -81,5 +82,12 @@ void Value_copy(Value *dest, Value *value){
 		*dest = *value;
 	otherwise:;
 		*dest = *value;
+	}
+}
+
+void Value_check(Value *v) {
+	if (v->type == Type_default) {
+		Error_message = "Uninitialized value used";
+		longjmp(Error_jump, 1);
 	}
 }

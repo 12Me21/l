@@ -104,7 +104,11 @@ typedef enum Opcode {
 	Op_push_function_literal, // .function
 	Op_return,
 	Op_assign,
+	Op_create_function,
+	Op_call_function,
 } Opcode;
+
+struct FunctionDef;
 
 typedef struct Instruction {
 	Opcode opcode;
@@ -112,7 +116,7 @@ typedef struct Instruction {
 		Value value; //biggest
 		Address address;
 		VarIndex varindex;
-		struct Function *function;
+		struct FunctionDef *function;
 	};
 } Instruction;
 
@@ -156,13 +160,12 @@ extern jmp_buf Error_jump;
 void Stack_reset(void);
 Value *Stack_push(void);
 Value *Stack_pop(void);
-void Callstack_push(Address n);
-Address Callstack_pop(void);
 
 // function.c
 Variable **Function_enter(FunctionDef *def);
 void Function_leave(FunctionDef *def);
 Function *Function_create(FunctionDef *def);
+void Varstack_reset(void);
 
 //Operators:
 void Value_add(Value *dest, Value *a, Value *b);
@@ -170,3 +173,5 @@ void Value_add(Value *dest, Value *a, Value *b);
 //Variable:
 Variable *Variable_new(Value *value, Function *validator);
 void Variable_assign(Variable *variable, Value *value);
+
+void Value_check(Value *v);
