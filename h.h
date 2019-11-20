@@ -3,7 +3,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <stdbool.h>
 #include <setjmp.h>
+
 #include <gc.h>
 
 #define DIM(array) sizeof(array)/sizeof((array)[0])
@@ -17,6 +19,7 @@ typedef char Boolean;
 typedef uint32_t BucketIndex;
 typedef int VarIndex;
 typedef int Level;
+typedef unsigned int StackIndex;
 //enum = int = too many memory
 #define Type_default '\0'
 #define Type_number '\1'
@@ -93,19 +96,20 @@ String *String_new(char *data, unsigned int length);
 // instructions
 typedef enum Opcode {
 	Op_invalid,
-	Op_push, // .value
-	Op_print,
-	Op_halt,
-	Op_jump, // .address
-	Op_discard,
-	Op_add, //
-	Op_push_local, // .varindex
-	Op_push_nonlocal, // .varindex
-	Op_push_function_literal, // .function
-	Op_return,
-	Op_assign,
-	Op_create_function,
-	Op_call_function,
+	Op_push, //-----------        | x
+	Op_print, //---------- x      |
+	Op_halt, //-----------        |
+	Op_jump, //-----------        |
+	Op_discard, //-------- x      |
+	Op_add, //------------ x y    | x+y
+	Op_push_local, //-----        | var
+	Op_push_nonlocal, //--        | var
+	Op_return, //---------        |
+	Op_assign, //--------- var x  |
+	Op_create_function, //        | func
+	Op_call_function, //-- func   |        //todo: args
+	Op_get_method, //----- x name | method
+	Op_stack_get, //------        | x
 } Opcode;
 
 struct FunctionDef;
@@ -116,6 +120,7 @@ typedef struct Instruction {
 		Value value; //biggest
 		Address address;
 		VarIndex varindex;
+		StackIndex stackindex;
 		struct FunctionDef *function;
 	};
 } Instruction;
@@ -160,6 +165,7 @@ extern jmp_buf Error_jump;
 void Stack_reset(void);
 Value *Stack_push(void);
 Value *Stack_pop(void);
+Value *Stack_get(StackIndex);
 
 // function.c
 Variable **Function_enter(FunctionDef *def);
@@ -175,3 +181,33 @@ Variable *Variable_new(Value *value, Function *validator);
 void Variable_assign(Variable *variable, Value *value);
 
 void Value_check(Value *v);
+
+//Lexer:
+typedef unsigned int NameIndex;
+
+typedef enum Token_type {
+	Token_invalid,
+	Token_invalid_char,
+	Token_error,
+	
+	Token_name,
+	Token_value,
+	Token_assign,
+	Token_print,
+	Token_linebreak,
+} Token_type;
+
+typedef struct Token {
+	Token_type type;
+	union {
+		Value value;
+		struct {
+			char chr;
+			char *error;
+		};
+		struct {
+			char *name; //identical names WILL have == pointers
+			bool first;
+		};
+	};
+} Token;

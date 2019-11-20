@@ -60,15 +60,16 @@ Table *Table_new(BucketIndex size){
 }
 
 TableNode *Table_get(Table *tb, Value *key){
-	BucketIndex index = Table_hash(key) % tb->size; //someday I'm going to forget to % ...
-	TableNode *bucket = tb->buckets[index];
-	while(bucket){
-		if (Value_compare(&bucket->key, key))
-			return bucket;
-		bucket = bucket->bnext;
-	}
-	return NULL;
-}
+;   BucketIndex index = Table_hash(key) % tb->size
+;   TableNode *bucket = tb->buckets[index]
+;   while(bucket){
+;      if (Value_compare(&bucket->key, key)){
+;         return bucket
+;      }
+;      bucket = bucket->bnext
+;   }
+;   return NULL
+;}
 
 TableNode *Table_add(Table *tb, Value *key, Variable *var){
 	BucketIndex index = Table_hash(key) % tb->size;

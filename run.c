@@ -29,12 +29,15 @@ void run(Function *function){
 	Instruction *bytecode = function->function->code;
 	Variable **locals = Function_enter(function->function);
 	Variable **nonlocals = function->nonlocals;
+	Value *a, *b;
+	Table *table;
+	Function *func;
 	while(1){
 		Instruction inst = bytecode[ip];
 		switch(inst.opcode){
-		when(Op_push):;
+		when(Op_push):
 			Value_copy(Stack_push(), &inst.value);
-		when(Op_print):;
+		when(Op_print):
 			Value_print(Stack_pop());
 		when(Op_halt):
 			longjmp(Error_jump, 2);
@@ -42,21 +45,21 @@ void run(Function *function){
 			ip = inst.address-1;
 		when(Op_discard):
 			Stack_pop();
-		when(Op_add):;
-			Value *a = Stack_pop();
-			Value *b = Stack_pop();
+		when(Op_add):
+			a = Stack_pop();
+			b = Stack_pop();
 			Value_add(Stack_push(), a, b);
-		when(Op_push_local):;
+		when(Op_push_local):
 			*(Stack_push()) = locals[inst.varindex]->value;
 		when(Op_push_nonlocal):;
 			*(Stack_push()) = nonlocals[inst.varindex]->value;
-		when(Op_return):;
+		when(Op_return):
 			goto func_return;
-		when(Op_assign):;
+		when(Op_assign):
 			a = Stack_pop();
 			Variable_assign(Stack_pop()->variable, a);
-		when(Op_create_function):;
-			Function *func = Function_create(inst.function);
+		when(Op_create_function):
+			func = Function_create(inst.function);
 			*(Stack_push()) = (Value){.class=NULL, .type=Type_function, .variable=NULL, .function=func};
 		when(Op_call_function):; //no args yet
 			a = Stack_pop();
@@ -65,11 +68,26 @@ void run(Function *function){
 				longjmp(Error_jump, 1);
 			}
 			run(a->function);
-		when(Op_get_method):;
-			// - get metatable
-			// - look up field
-			// - if function, set `this` upvalue maybe
-			// - push
+		when(Op_stack_get):
+			a = Stack_get(inst.stackindex);
+			*(Stack_push()) = *a;
+		when(Op_get_method):
+			a = Stack_pop(); //name
+			b = Stack_pop(); //value
+			table = b->class;
+			if (!table) {
+				Error_message = "Tried to access method on value without class";
+				longjmp(Error_jump, 1);
+			}
+			TableNode *node = Table_get(table, a);
+			if(!node){
+				Error_message = "Method not found";
+				longjmp(Error_jump, 1);
+			}
+			a = Stack_push();
+			*a = node->variable->value; //store value on stack
+			a->variable = NULL; //cut variable reference (so you can't assign to method this way)
+			//todo: update `this` upvalue on functions?
 		otherwise:
 			Error_message = "Internal error: Invalid opcode";
 			longjmp(Error_jump, 1);

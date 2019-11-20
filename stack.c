@@ -4,7 +4,7 @@
 // Value Stack
 
 static Value stack[1024];
-static unsigned stack_len = 0;
+static StackIndex stack_len = 0;
 
 Value *Stack_push(void){
 	if(stack_len >= DIM(stack)){
@@ -34,6 +34,16 @@ Value *Stack_pop(void){
 void Stack_reset(void){
 	memset(stack, 0, sizeof stack);
 	stack_len = 0;
+}
+
+// Get a value from the stack, relative to the top
+// 0 = top, 1 = 2nd from top, etc.
+Value *Stack_get(StackIndex offset){
+	if(offset >= stack_len){
+		Error_message = "Internal error: Stack underflow";
+		longjmp(Error_jump, 1);
+	}
+	return &stack[stack_len - offset];
 }
 
 // note: be careful when using malloc instead of GC_malloc

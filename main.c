@@ -28,21 +28,31 @@ int main(void){
 	//while(1)
 
 	Instruction bytecode2[] = {
+		//x = true
 		{.opcode=Op_push_nonlocal, .varindex=0},
 		{.opcode=Op_push, .value={.type=Type_boolean, .boolean=1}},
 		{.opcode=Op_assign},
+		//x = @
+		{.opcode=Op_push_nonlocal, .varindex=0},
+		{.opcode=Op_stack_get, .stackindex=0},
+		{.opcode=Op_assign},
+		//?x
 		{.opcode=Op_push_nonlocal, .varindex=0},
 		{.opcode=Op_print},
+
 		{.opcode=Op_return}
 	};
 	Nonlocal nl[1] = {{.index=0,. level=1}};
 	FunctionDef ne = {.localc=0, .argc=0, .code=bytecode2, .nonlocals=nl, .level=1, .nonlocalc=1};
 	
 	Instruction bytecode[] = {
+		//{...|...}()
 		{.opcode=Op_create_function, .function=&ne},
 		{.opcode=Op_call_function},
-		{.opcode=Op_push_local},
+		//?x
+		{.opcode=Op_push_local, .varindex=0},
 		{.opcode=Op_print},
+		
 		{.opcode=Op_return},
 	};
 	FunctionDef mai = {.localc=1, .argc=0, .code=bytecode, .nonlocals=NULL, .level=0};
@@ -51,6 +61,11 @@ int main(void){
 	//Function_enter(&mai);
 	//Function *n = Function_create(&ne);
 	//while(1)
-		Run_init(m);
+	Run_init(m);
+
+	FILE *file = fopen("test.prg");
+	Token_start_file(file);
+	Token_finish();
+	
 	return 0;
 }
