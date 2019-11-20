@@ -20,6 +20,7 @@ typedef uint32_t BucketIndex;
 typedef int VarIndex;
 typedef int Level;
 typedef unsigned int StackIndex;
+typedef int LineNumber;
 //enum = int = too many memory
 #define Type_default '\0'
 #define Type_number '\1'
@@ -141,6 +142,8 @@ typedef struct FunctionDef {
 	Instruction *code;
 	Nonlocal *nonlocals; // length = `nonlocalc`
 	Level level;
+	Address *lines; //list of the indexes of the first instruction on each line
+	LineNumber first_line;
 } FunctionDef;
 
 // Function + upvalues
