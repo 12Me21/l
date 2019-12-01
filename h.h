@@ -9,6 +9,7 @@
 #include <gc.h>
 
 #define DIM(array) sizeof(array)/sizeof((array)[0])
+#define EACH(var, array) ((var)=0; (var)<DIM(array); (var)++)
 
 #define when(x) break;case x
 #define otherwise break;default
@@ -97,12 +98,17 @@ String *String_new(char *data, unsigned int length);
 // instructions
 typedef enum Opcode {
 	Op_invalid,
+
+	//normal ops (these are first to make the rpn precedence list nicer
+	Op_add, //------------ x y    | x+y
+
+	// etc.
 	Op_push, //-----------        | x
 	Op_print, //---------- x      |
 	Op_halt, //-----------        |
 	Op_jump, //-----------        |
 	Op_discard, //-------- x      |
-	Op_add, //------------ x y    | x+y
+
 	Op_push_local, //-----        | var
 	Op_push_nonlocal, //--        | var
 	Op_return, //---------        |
@@ -111,6 +117,7 @@ typedef enum Opcode {
 	Op_call_function, //-- func   |        //todo: args
 	Op_get_method, //----- x name | method
 	Op_stack_get, //------        | x
+
 } Opcode;
 
 struct FunctionDef;
@@ -189,8 +196,6 @@ void Value_check(Value *v);
 typedef unsigned int NameIndex;
 
 typedef enum Token_type {
-	Token_invalid,
-	Token_invalid_char,
 	Token_error,
 	
 	Token_name,
@@ -198,6 +203,21 @@ typedef enum Token_type {
 	Token_assign,
 	Token_print,
 	Token_linebreak,
+
+	Token_lparen,
+	Token_rparen,
+	
+	Token_op1, //prefix op
+	Token_op2, //infix op
+	Token_op12, //prefix or infix
+	// These are all the keyword tokens, _in the same order as_
+	// keyword_names in lexer.c
+	// DO NOT REORDER THESE
+	Token_if, Token_then, Token_endif, Token_else, Token_elseif,
+	Token_while, Token_wend, Token_repeat, Token_until,
+	Token_for, Token_next,
+	
+	
 } Token_type;
 
 typedef struct Token {
@@ -212,5 +232,9 @@ typedef struct Token {
 			char *name; //identical names WILL have == pointers
 			bool first;
 		};
+		Opcode op1;
+		Opcode op2;
 	};
 } Token;
+
+void Token_start_file(FILE *f);

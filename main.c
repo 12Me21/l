@@ -63,7 +63,7 @@ int main(void){
 	//while(1)
 	Run_init(m);
 
-	FILE *file = fopen("test.prg");
+	FILE *file = fopen("test.prg", "r");
 	Token_start_file(file);
 	Token_finish();
 	
