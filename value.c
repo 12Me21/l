@@ -66,6 +66,15 @@ String *String_new(char *data, unsigned int length){
 	return string;
 }
 
+//make a new string
+String *String_new_nocopy(char *data, unsigned int length){
+	String *string = GC_MALLOC_ATOMIC(sizeof(String));
+	GC_register_finalizer(string, String_fin, NULL, NULL, NULL);
+	string->string = data;
+	string->length = length;
+	return string;
+}
+
 //copies a string value from `value` to `dest`
 void Value_string_copy(Value *dest, Value *value){
 	//todo: check if value type is string

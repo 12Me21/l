@@ -88,6 +88,7 @@ TableNode *Table_remove(Table *tb, Value *key);
 void Value_print(Value *value);
 
 String *String_new(char *data, unsigned int length);
+String *String_new_nocopy(char *data, unsigned int length);
 
 #define Value_number(number1, class1) (Value){.type=Type_number, .class=(class1), .number=(number1)}
 #define Value_string(data, len, class1) (Value){.type=Type_string, .class=(class1), .string=String_new(data, len)};
@@ -101,7 +102,16 @@ typedef enum Opcode {
 
 	//normal ops (these are first to make the rpn precedence list nicer
 	Op_add, //------------ x y    | x+y
+	Op_subtract,
+	Op_negate,
+	Op_multiply,
+	Op_divide,
+	Op_remainder,
+	Op_exponent,
+	Op_not, //------------ x      | !x
+	Op_not_equal, //------ x y    | x!=y
 
+	
 	// etc.
 	Op_push, //-----------        | x
 	Op_print, //---------- x      |
@@ -206,6 +216,13 @@ typedef enum Token_type {
 
 	Token_lparen,
 	Token_rparen,
+	Token_lbrace,
+	Token_rbrace,
+	Token_lbracket,
+	Token_rbracket,
+	
+	Token_at,
+	Token_label,
 	
 	Token_op1, //prefix op
 	Token_op2, //infix op

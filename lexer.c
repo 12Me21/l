@@ -59,17 +59,29 @@ static const *char keyword_names[] = {
 	"while", "wend", "repeat", "until", "for", "next",
 };
 
+// case insensitive string compare
+// first string should be all lowercase
+int icase_compare(const char *lower, const char *in) {
+	while (*lower && *in){
+		if (*lower++ != tolower(*in++))
+			return 0;
+	}
+	return 1;
+}
+
 // Memory notes:
 // It is the responsibility of the parser to
 // handle freeing of the name strings :) The
 // tokenizer will only free the linked list.
 static void tokennametable1(char *name, Token *t){
+	// Check keywords list
 	int i;
 	for EACH(i, keyword_names)
-		if (!strcmp(name, keyword_names[i])){
-			t->type = Token_
+		if (icase_compare(keyword_names[i], name)){
+			t->type = Token_if+i;
+			return;
 		}
-	
+	// Check name table
 	Nametable *curr = nametable;
 	t->type = Token_name;
 	while (curr) {
@@ -79,6 +91,7 @@ static void tokennametable1(char *name, Token *t){
 		}
 		curr = curr->next;
 	}
+	// Not found: new identifier
 	name = strdup(name);
 	curr = malloc(sizeof(Nametable));
 	curr->next = nametable;
@@ -157,6 +170,67 @@ void Token_next(void){
 	} else if (c == '?') {
 		token.type = Token_print;
 		scan();
+	//======
+	// ! !=
+	} else if (c == '!') {
+		scan();
+		if (c == '=') {
+			scan();
+			token.type = Token_op2;
+			token.op2 = Op_not_equal;
+		} else {
+			token.type = Token_op1;
+			token.type = Op_not;
+		}
+	//======
+	// @...
+	} else if (c == '@') {
+		scan();
+		if (isword(c)) {
+			name_start();
+			name_read('@');
+			do {
+				name_read(c);
+				scan();
+			} while (isword(c));
+			name_read(0);
+			token.type = Token_label;
+			tokennametable1(name, token);
+		} else {
+			token.type = Token_at;
+		}
+	}	else if (c == '(') { scan(); token.type = Token_lparen;
+	} else if (c == ')') { scan(); token.type = Token_rparen;
+	} else if (c == '{') { scan(); token.type = Token_lbrace;
+	} else if (c == '}') { scan(); token.type = Token_rbrace;
+	} else if (c == '[') { scan(); token.type = Token_lbracket;
+	} else if (c == ']') { scan(); token.type = Token_rbracket;
+	} else if (c == '+') { scan(); token.type = Token_op2; token.op2 = Op_add;
+	} else if (c == '-') { scan(); token.type = Token_op12; token.op1 = Op_negate; token.op2 = Op_subtract;
+	} else if (c == '*') { scan(); token.type = Token_op2; token.op2 = Op_multiply;
+	} else if (c == '/') { scan(); token.type = Token_op2; token.op2 = Op_divide;
+	} else if (c == '%') { scan(); token.type = Token_op2; token.op2 = Op_remainder;
+	} else if (c == '^') { scan(); token.type = Token_op2; token.op2 = Op_exponent;
+	//========
+	// String
+	} else if (c == '"') {
+		scan();
+		char *string = malloc(1);
+		size_t buf_size = 1;
+		size_t size = 0;
+		while (c!=EOF && c!='"' && c!='\n') { //check for \r?
+			if (buf_size < size+1) {
+				string = realloc(string, ++buf_size);
+			}
+			string[size++] = c;
+		}
+		if (c=='"')
+			scan();
+		token.type = Token_value;
+		token.value = { .class=NULL, .variable=NULL,
+			.type=Type_string, .string=String_new_nocopy(string, size)
+		};
+		
 	//=================
 	// All other chars
 	} else {
