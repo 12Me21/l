@@ -102,6 +102,7 @@ static void tokennametable1(char *name, Token *t){
 	t->name = name;
 }
 
+
 bool Token_try(Token_type wanted){
 	Token_next();
 	if (token.type == wanted) {
@@ -199,7 +200,7 @@ void Token_next(void){
 		} else {
 			token.type = Token_at;
 		}
-	}	else if (c == '(') { scan(); token.type = Token_lparen;
+	} else if (c == '(') { scan(); token.type = Token_lparen;
 	} else if (c == ')') { scan(); token.type = Token_rparen;
 	} else if (c == '{') { scan(); token.type = Token_lbrace;
 	} else if (c == '}') { scan(); token.type = Token_rbrace;
@@ -215,22 +216,21 @@ void Token_next(void){
 	// String
 	} else if (c == '"') {
 		scan();
-		char *string = malloc(1);
-		size_t buf_size = 1;
-		size_t size = 0;
-		while (c!=EOF && c!='"' && c!='\n') { //check for \r?
-			if (buf_size < size+1) {
-				string = realloc(string, ++buf_size);
+		BUFFER_START(string, Letter);
+		while (c != '"') { //check for \r?
+			if (c == EOF || c == '\n' || c == '\r') {
+				token.type = Token_error;
+				token.error = "Unclosed string";
+				return;
 			}
-			string[size++] = c;
-		}
-		if (c=='"')
-			scan();
+			BUFFER_READ(string, c);
+		} //these brackets are required
+		scan();
 		token.type = Token_value;
-		token.value = { .class=NULL, .variable=NULL,
-			.type=Type_string, .string=String_new_nocopy(string, size)
+		token.value = {
+			.class=NULL, .variable=NULL, .type=Type_string,
+			.string=String_new_nocopy(BUFFER_FINISH(string), size)
 		};
-		
 	//=================
 	// All other chars
 	} else {

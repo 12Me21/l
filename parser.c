@@ -4,10 +4,12 @@ extern Token token;
 
 static jmp_buf Parse_error;
 
+// init parser (read from string)
 void Parse_start_string() {
 	
 }
 
+// init parser (read from file)
 void Parse_start_file(FILE *f) {
 	Token_start_file(f);
 	Parse_start();
@@ -15,6 +17,7 @@ void Parse_start_file(FILE *f) {
 
 static Token t;
 
+// init parser
 void Parse_start() {
 	Rpn_start();
 	Token_next();
@@ -46,7 +49,7 @@ bool Parse_expression(FunctionDef *func) {
 	when(Token_value):
 		Rpn_value(token.value);
 	when(Token_name):
-		
+		// variable!!
 	}
 }
 
@@ -80,14 +83,4 @@ void Parse() {
 			Token_next();
 		}
 	}
-}
-
-void Parse_expression(bytecode){
-	switch (t.type) {
-	when(Token_op1):
-	case Token_op12:
-		//
-		when(Token_
-	}
-	
 }

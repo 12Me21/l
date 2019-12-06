@@ -14,6 +14,10 @@
 #define when(x) break;case x
 #define otherwise break;default
 
+#define BUFFER_START(name, type) type *Buffer__##name = malloc(sizeof(type)*initsize); size_t Buffer_size__##name = 1024; size_t Buffer_length__##name = 0
+#define BUFFER_READ(name, value) if (Buffer_length__##name > Buffer_size__##name) Buffer__##name = realloc(Buffer__##name, sizeof(*Buffer__##name) * (Buffer_size__##name += 1024)); Buffer__##name[Buffer_length__##name++] = value
+#define BUFFER_FINISH(name) realloc(Buffer__##name, sizeof(*Buffer__##name) * Buffer_length__##name)
+
 typedef double Number;
 typedef int Address; //address within bytecode
 typedef char Boolean;
@@ -22,6 +26,8 @@ typedef int VarIndex;
 typedef int Level;
 typedef unsigned int StackIndex;
 typedef int LineNumber;
+typedef char Letter;
+
 //enum = int = too many memory
 #define Type_default '\0'
 #define Type_number '\1'
